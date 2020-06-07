@@ -1,3 +1,5 @@
+import { LearnAPI } from "./api";
+
 const { Client, Pool } = require("pg")
 
 export const pool = new Pool({
@@ -18,18 +20,18 @@ export function runQuery(query:string){
   return pool.query(query)
 }
 
+export function addModule(moduleInformation:LearnDatabase.ModulesTable){
+  runQuery(`INSERT INTO "public"."Modules" ("module_name", "description", "questions", "metadata", "model_id") VALUES ('${moduleInformation.module_name}', '${moduleInformation.description}', '${JSON.stringify(moduleInformation.questions)}', '${JSON.stringify(moduleInformation.metadata)}', '${moduleInformation.model_id}');`)
+}
 
 export namespace LearnDatabase {
   export interface ModulesTable {
-    id: number,
-    educator_name: string,
-    school_name: string,
-  }
-
-  export interface QuestionSetTable {
-    id:number,
-    model_id:number,
-    question_set:string
+    id?: number,
+    module_name:string,
+    description: string,
+    questions: QuestionSet,
+    metadata:string[],
+    model_id: string
   }
 
   export interface QuestionSet {
