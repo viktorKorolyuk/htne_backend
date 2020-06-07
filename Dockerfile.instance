@@ -1,0 +1,25 @@
+FROM htne/base_img
+
+EXPOSE 5432
+EXPOSE 8080
+
+ADD ./ /project/
+# RUN useradd postgres
+USER postgres
+USER root
+RUN mkdir -p /home/postgres
+RUN chown -R postgres /project/ /home/postgres
+USER postgres
+
+RUN /etc/init.d/postgresql start &&\
+    psql --command "CREATE USER htne WITH SUPERUSER LOGIN PASSWORD 'htne';" &&\
+    psql -c "CREATE DATABASE learn;" &&\
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE learn TO htne;" &&\
+    psql learn -c "CREATE TABLE \"public\".\"Modules\" (\"id\" serial,\"module_name\" text, \"description\" text, \"questions\" text, \"metadata\" text, \"model_id\" text, PRIMARY KEY (\"id\"));"
+
+RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/12/main/pg_hba.conf
+RUN echo "listen_addresses='*'" >> /etc/postgresql/12/main/postgresql.conf
+
+RUN cd /project/ && npm install
+
+ENTRYPOINT ["/bin/sh", "run.sh"]
